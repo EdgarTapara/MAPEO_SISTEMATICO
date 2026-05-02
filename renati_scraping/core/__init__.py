@@ -1,0 +1,1 @@
+"""Core del scraper RENATI."""

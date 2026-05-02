@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+pytest-cache-files-*/
+data/raw/*.html
+data/output/*.xlsx
+tests/_output/
+renati9.ipynb
