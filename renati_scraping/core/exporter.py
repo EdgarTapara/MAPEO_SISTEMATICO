@@ -12,7 +12,7 @@ from .normalize import map_access_type, map_degree, normalize_for_match, slugify
 from .regions import infer_region
 
 
-DEFAULT_CONSOLIDATED_FILE = "renati_resultados_consolidados.xlsx"
+DEFAULT_FILE_TEMPLATE = "renati_resultados_{topic}.xlsx"
 
 EXPORT_COLUMNS = [
     "id",
@@ -29,8 +29,6 @@ EXPORT_COLUMNS = [
     "mes_publicacion",
     "titulo",
     "autor",
-    "renati_level_original",
-    "renati_type_original",
 ]
 
 
@@ -63,8 +61,6 @@ def build_export_rows(
                 "mes_publicacion": item.month,
                 "titulo": item.title,
                 "autor": item.author,
-                "renati_level_original": item.renati_level,
-                "renati_type_original": item.renati_type,
             }
         )
     return rows
@@ -75,11 +71,12 @@ def export_excel(
     topic: str,
     output_dir: str | Path = "data/output",
     details: dict[str, object] | None = None,
-    file_name: str = DEFAULT_CONSOLIDATED_FILE,
+    file_name: str | None = None,
     append: bool = True,
 ) -> Path:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+    file_name = file_name or default_output_file_name(topic)
     file_path = output_path / file_name
     rows = build_export_rows(items, topic=topic, details=details)
     df = pd.DataFrame(rows, columns=EXPORT_COLUMNS)
@@ -91,6 +88,10 @@ def export_excel(
     df.to_excel(file_path, index=False, sheet_name="resultados")
     _format_workbook(file_path)
     return file_path
+
+
+def default_output_file_name(topic: str) -> str:
+    return DEFAULT_FILE_TEMPLATE.format(topic=slugify(topic))
 
 
 def merge_consolidated_rows(previous: pd.DataFrame, current: pd.DataFrame) -> pd.DataFrame:
@@ -111,14 +112,14 @@ def merge_consolidated_rows(previous: pd.DataFrame, current: pd.DataFrame) -> pd
     merged = merged.sort_values("_row_order").drop(
         columns=["_has_summary", "_summary_len", "_row_order", "_dedupe_key"]
     )
-    merged["id"] = [f"RENATI-CONSOLIDADO-{idx:05d}" for idx in range(1, len(merged) + 1)]
+    merged["id"] = [_row_id(row, idx) for idx, (_, row) in enumerate(merged.iterrows(), start=1)]
     return merged[EXPORT_COLUMNS]
 
 
 def normalize_consolidated_ids(df: pd.DataFrame) -> pd.DataFrame:
     df = df.reindex(columns=EXPORT_COLUMNS).copy()
     df = merge_consolidated_rows(pd.DataFrame(columns=EXPORT_COLUMNS), df)
-    df["id"] = [f"RENATI-CONSOLIDADO-{idx:05d}" for idx in range(1, len(df) + 1)]
+    df["id"] = [_row_id(row, idx) for idx, (_, row) in enumerate(df.iterrows(), start=1)]
     return df[EXPORT_COLUMNS]
 
 
@@ -128,6 +129,11 @@ def _dedupe_key(row) -> str:
     if title:
         return f"title::{title}::university::{university}"
     return f"url::{normalize_for_match(str(row.get('enlace_documento_original') or ''))}"
+
+
+def _row_id(row, idx: int) -> str:
+    topic = slugify(str(row.get("tema") or "renati"))
+    return f"RENATI-{topic}-{idx:05d}"
 
 
 def _format_workbook(path: Path) -> None:

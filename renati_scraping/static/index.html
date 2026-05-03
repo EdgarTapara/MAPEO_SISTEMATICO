@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RENATI Mapper</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="rail">
+        <div class="brand-mark">R</div>
+        <div class="rail-line"></div>
+        <div class="rail-label">MAPEO SISTEMATICO</div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">RENATI Scraping</p>
+            <h1>Panel local para construir mapas de tesis</h1>
+            <p class="subtitle">
+              Configura una corrida, ejecuta y consolida resultados en un Excel unico.
+              Pasa el puntero sobre cada campo para ver una explicacion breve.
+            </p>
+          </div>
+          <section class="author" aria-label="Autor">
+            <img src="/assets/Donny_Tapara.png" alt="Donny Tapara" />
+            <div>
+              <strong>Donny Tapara</strong>
+              <span>Autor y mantenimiento</span>
+              <nav>
+                <a href="https://www.linkedin.com/in/donny-tapara" target="_blank" rel="noreferrer">LinkedIn</a>
+                <a href="https://github.com/EdgarTapara" target="_blank" rel="noreferrer">GitHub</a>
+              </nav>
+            </div>
+          </section>
+        </header>
+
+        <section class="status-strip" aria-label="Reglas del flujo">
+          <div>
+            <span class="dot dot-ready"></span>
+            <strong>Resumen obligatorio</strong>
+            <p>Filas sin resumen quedan fuera salvo permiso explicito.</p>
+          </div>
+          <div>
+            <span class="dot dot-warn"></span>
+            <strong>Excel por tema</strong>
+            <p>Salida esperada: renati_resultados_{tema}.xlsx.</p>
+          </div>
+          <div>
+            <span class="dot dot-cold"></span>
+            <strong>RENATI vivo</strong>
+            <p>El navegador atraviesa Anubis cuando es necesario.</p>
+          </div>
+        </section>
+
+        <div class="main-grid">
+          <section class="panel form-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Configuracion</p>
+                <h2>Corrida de busqueda</h2>
+              </div>
+              <div class="head-actions">
+                <label class="mode-toggle" title="Mostrar campos avanzados">
+                  <input type="checkbox" id="advancedToggle" />
+                  <span>Avanzado</span>
+                </label>
+                <button class="ghost-button" id="resetBtn" type="button">Limpiar</button>
+              </div>
+            </div>
+
+            <form id="runForm">
+              <div class="field field-wide">
+                <label for="topic">
+                  Tema
+                  <span class="badge-required">obligatorio</span>
+                </label>
+                <input id="topic" name="topic" value="pobreza" autocomplete="off" required />
+                <p class="hint">Palabra o frase que aparece en titulo, resumen o palabras clave RENATI.</p>
+              </div>
+
+              <div class="field">
+                <label for="limit">Trabajos</label>
+                <input id="limit" name="limit" type="number" min="1" max="2000" value="300" />
+                <p class="hint">Maximo a exportar en esta corrida (1-2000).</p>
+              </div>
+
+              <div class="field">
+                <label for="source">Fuente</label>
+                <select id="source" name="source">
+                  <option value="browser-export">Navegador + CSV oficial</option>
+                  <option value="csv">CSV local</option>
+                  <option value="browser">Navegador paginado</option>
+                  <option value="renati">Requests RENATI</option>
+                </select>
+                <p class="hint">Recomendado: <strong>Navegador + CSV oficial</strong>. Mas robusto contra Anubis.</p>
+              </div>
+
+              <div class="field">
+                <label for="start_year">Anio inicial</label>
+                <input id="start_year" name="start_year" type="number" min="1900" max="2100" placeholder="Todos" />
+                <p class="hint">Vacio = sin limite inferior.</p>
+              </div>
+
+              <div class="field">
+                <label for="end_year">Anio final</label>
+                <input id="end_year" name="end_year" type="number" min="1900" max="2100" placeholder="Todos" />
+                <p class="hint">Vacio = sin limite superior.</p>
+              </div>
+
+              <div class="field field-wide">
+                <label for="degree">Grado</label>
+                <input id="degree" name="degree" placeholder="Maestria, Doctorado" />
+                <p class="hint">Separa con coma. Valores: Bachiller, Licenciatura/Titulo profesional, Maestria, Doctorado.</p>
+              </div>
+
+              <div class="field">
+                <label for="region">Region inferida</label>
+                <input id="region" name="region" placeholder="Arequipa" />
+                <p class="hint">Se infiere desde el nombre de la universidad. No es campo oficial RENATI.</p>
+              </div>
+
+              <div class="field">
+                <label for="university">Universidad</label>
+                <input id="university" name="university" placeholder="UNSA" />
+                <p class="hint">Texto parcial. Se aceptan varios separados por coma.</p>
+              </div>
+
+              <div class="field field-wide advanced">
+                <label for="output_file">Nombre de Excel</label>
+                <input id="output_file" name="output_file" placeholder="Automatico por tema" />
+                <p class="hint">Por defecto: renati_resultados_{tema}.xlsx en data/output/.</p>
+              </div>
+
+              <div class="switch-row advanced">
+                <label title="Ejecuta Chrome sin ventana visible. Mas rapido pero pierdes la verificacion visual.">
+                  <input type="checkbox" name="headless" /> Chrome sin ventana
+                </label>
+                <label title="Acepta filas aun cuando el resumen no se pudo descargar. Solo para exploracion.">
+                  <input type="checkbox" name="allow_missing_summary" /> Permitir sin resumen
+                </label>
+                <label title="No reintenta con navegador cuando requests no recupera el resumen.">
+                  <input type="checkbox" name="no_detail_browser_fallback" /> Sin fallback detalle
+                </label>
+              </div>
+
+              <div class="command-box">
+                <span>Comando estimado</span>
+                <code id="commandPreview"></code>
+              </div>
+
+              <div class="action-row">
+                <button class="run-button" id="runBtn" type="submit">
+                  Ejecutar scraping
+                  <span>Generar Excel · Ctrl+Enter</span>
+                </button>
+                <button class="cancel-button" id="cancelBtn" type="button" hidden>Cancelar</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel monitor-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Monitor</p>
+                <h2>Estado de ejecucion</h2>
+              </div>
+              <span class="status-pill" id="jobStatus">idle</span>
+            </div>
+
+            <div class="metrics">
+              <div class="metric">
+                <span>Progreso</span>
+                <strong id="progressLabel">0 / 0</strong>
+                <div class="progress-track" aria-hidden="true">
+                  <div class="progress-bar" id="progressBar"></div>
+                </div>
+              </div>
+              <div class="metric">
+                <span>Tiempo</span>
+                <strong id="elapsedLabel">00:00</strong>
+              </div>
+            </div>
+
+            <div class="output-target">
+              <div>
+                <span>Archivo generado</span>
+                <strong id="outputPath">Pendiente</strong>
+              </div>
+              <button class="ghost-button" id="openOutputBtn" type="button" disabled>Abrir Excel</button>
+            </div>
+
+            <pre id="logBox" class="log-box" aria-live="polite">Sin corrida activa.</pre>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>
