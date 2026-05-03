@@ -9,7 +9,7 @@ El proyecto ya no debe tratarse como notebook experimental. Ahora tiene estructu
 - `cli.py`: interfaz de ejecucion.
 - `renati_scraping/core/`: cliente, navegador, parser, detalle, filtros y exportador.
 - `tests/`: pruebas unitarias/offline.
-- `data/output/renati_resultados_consolidados.xlsx`: salida consolidada unica.
+- `data/output/renati_resultados_{tema}.xlsx`: salida por tema en una sola pestaña.
 
 ## Problemas Encontrados
 
@@ -22,11 +22,11 @@ El proyecto ya no debe tratarse como notebook experimental. Ahora tiene estructu
 
 ## Mejoras Implementadas
 
-1. Salida unica consolidada: `data/output/renati_resultados_consolidados.xlsx`.
-2. Deduplicacion por `enlace_documento_original`.
+1. Salida por tema: `data/output/renati_resultados_pobreza.xlsx`, `data/output/renati_resultados_economia.xlsx`, etc.
+2. Deduplicacion dentro del archivo del tema por `enlace_documento_original`.
 3. Deduplicacion adicional por `titulo + universidad`, porque el mismo trabajo puede aparecer con URL RENATI y URL del repositorio.
-4. Si existen duplicados, el consolidado conserva la fila con resumen mas largo.
-5. IDs consolidados estables: `RENATI-CONSOLIDADO-00001`, etc.
+4. Si existen duplicados, el archivo del tema conserva la fila con resumen mas largo.
+5. IDs estables por tema: `RENATI-pobreza-00001`, etc.
 6. Modo principal `browser-export`: usa navegador para pasar Anubis y descarga el CSV oficial de RENATI antes de filtrar.
 7. El detalle/resumen es obligatorio por defecto. Las filas sin resumen se omiten, salvo uso explicito de `--allow-missing-summary`.
 8. Fallback de navegador para detalle activado por defecto.

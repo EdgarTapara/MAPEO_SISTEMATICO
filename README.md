@@ -17,7 +17,15 @@ El programa pregunta:
 - región
 - universidades
 
-El Excel queda en `data/output/`.
+El Excel queda en `data/output/` con el nombre `renati_resultados_{tema}.xlsx`.
+
+## Interfaz web local
+
+```powershell
+python cli.py --web
+```
+
+Abre un panel local en `http://127.0.0.1:8765` para configurar tema, filtros, limite y ejecutar el scraper sin escribir todos los argumentos.
 
 ## Uso recomendado contra RENATI vivo
 
@@ -40,11 +48,8 @@ $env:RENATI_CHROME_VERSION_MAIN="147"
 python cli.py --source browser-export --topic pobreza --limit 300 --no-interactive
 ```
 
-## Sprint implementado
-
-- Sprint 1: cliente HTTP, descarga de listado RENATI y parser de resultados.
-- Sprint 2: CLI interactivo, filtros locales, navegador `undetected-chromedriver`, resumen desde detalle y exportación Excel de una sola hoja.
-
 El campo `resumen` se descarga desde la pagina de detalle de cada trabajo. Por defecto, las filas sin resumen recuperable no se exportan.
+
+La extraccion de detalle es conservadora: si un repositorio universitario mezcla enlaces, codigos o navegacion dentro del HTML, esos textos se descartan para no contaminar `resumen` ni `palabras_clave`.
 
 Manual completo: `MANUAL_USO.md`.

@@ -2,12 +2,12 @@
 
 ## Objetivo
 
-Construir un Excel consolidado para mapeo sistematico de tesis/trabajos RENATI por tema, con resumen obligatorio, filtros locales y salida unica.
+Construir un Excel por tema para mapeo sistematico de tesis/trabajos RENATI, con resumen obligatorio, filtros locales y una sola pestaña de resultados.
 
 Archivo final:
 
 ```text
-data/output/renati_resultados_consolidados.xlsx
+data/output/renati_resultados_{tema}.xlsx
 ```
 
 ## Instalacion
@@ -34,7 +34,7 @@ Este modo:
 4. Aplica filtros locales.
 5. Entra al detalle de cada trabajo.
 6. Exporta solo filas con resumen.
-7. Actualiza el Excel consolidado sin duplicar enlaces.
+7. Actualiza el Excel del mismo tema sin duplicar enlaces.
 
 ## Ejecucion Interactiva
 
@@ -43,6 +43,26 @@ python cli.py
 ```
 
 El programa pregunta tema, cantidad y filtros.
+
+## Interfaz Web Local
+
+```powershell
+python cli.py --web
+```
+
+El servidor abre:
+
+```text
+http://127.0.0.1:8765
+```
+
+Desde el panel se puede definir tema, cantidad, filtros, modo de fuente y ejecutar una corrida. El backend llama al mismo `cli.py`, por lo que las reglas de resumen obligatorio, Excel por tema y deduplicacion se mantienen.
+
+Si el puerto esta ocupado:
+
+```powershell
+python cli.py --web --port 8770
+```
 
 ## Filtros
 
@@ -95,16 +115,16 @@ La region no viene como filtro oficial RENATI. Se infiere desde el nombre de la 
 - `mes_publicacion`
 - `titulo`
 - `autor`
-- `renati_level_original`
-- `renati_type_original`
 
 ## Reglas Importantes
 
-1. El Excel es unico y consolidado. No se crean archivos separados por tema.
-2. El resumen es obligatorio por defecto.
-3. Si un trabajo no tiene resumen recuperable, se omite.
-4. Si una corrida posterior encuentra resumen para un enlace previamente incompleto, el consolidado conserva la version con resumen.
-5. No usar `--skip-summary` para produccion.
+1. El Excel se genera por tema: `renati_resultados_pobreza.xlsx`, `renati_resultados_economia.xlsx`, etc.
+2. Cada Excel tiene una sola pestaña llamada `resultados`.
+3. El resumen es obligatorio por defecto.
+4. Si un trabajo no tiene resumen recuperable, se omite.
+5. Si una corrida posterior del mismo tema encuentra resumen para un enlace previamente incompleto, el archivo conserva la version con resumen mas largo.
+6. Los campos `resumen` y `palabras_clave` se extraen de secciones y metadatos reconocidos; URLs, codigos PURL/OCDE y bloques de navegacion se descartan.
+7. No usar `--skip-summary` para produccion.
 
 ## Opciones Avanzadas
 
@@ -127,7 +147,7 @@ $env:RENATI_CHROME_VERSION_MAIN="147"
 python cli.py --source browser-export --topic pobreza --limit 300 --no-interactive
 ```
 
-Cambiar nombre del consolidado:
+Cambiar nombre del Excel:
 
 ```powershell
 python cli.py --source browser-export --topic pobreza --output-file renati_mapeo_final.xlsx --limit 300 --no-interactive

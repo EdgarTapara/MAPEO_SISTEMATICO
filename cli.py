@@ -8,7 +8,7 @@ from pathlib import Path
 from renati_scraping.core.browser import BrowserManager
 from renati_scraping.core.client import RenatiClient
 from renati_scraping.core.detail import DetailData, DetailFetcher
-from renati_scraping.core.exporter import export_excel
+from renati_scraping.core.exporter import default_output_file_name, export_excel
 from renati_scraping.core.filters import FilterConfig, matches_filters
 from renati_scraping.core.search import (
     fetch_export_csv_with_browser,
@@ -25,6 +25,11 @@ LOGGER = logging.getLogger("renati")
 
 def main() -> None:
     args = parse_args()
+    if args.web:
+        from renati_scraping.webapp import run_server
+
+        run_server(host=args.host, port=args.port, open_browser=not args.no_open)
+        return
     configure_logging(args.log_level)
     interactive = args.interactive and sys.stdin.isatty()
     topic = args.topic or (ask_text("Tema a buscar", default="pobreza") if interactive else "pobreza")
@@ -51,6 +56,7 @@ def main() -> None:
     print(f"- Tema: {topic}")
     print(f"- Maximo exportable: {limit}")
     print(f"- Fuente: {source}")
+    print(f"- Excel destino: {args.output_file or default_output_file_name(topic)}")
     print("- Nota: el resumen se descarga entrando al detalle de cada handle; esto toma mas tiempo.\n")
     if args.skip_summary:
         print("Advertencia: --skip-summary deja la columna resumen vacia. Usalo solo para pruebas tecnicas.\n")
@@ -307,7 +313,7 @@ def parse_args() -> argparse.Namespace:
         help="Fuente: browser-export, browser, renati o csv",
     )
     parser.add_argument("--csv-path", default="resultado_busqueda.csv", help="CSV RENATI exportado")
-    parser.add_argument("--output-file", default="renati_resultados_consolidados.xlsx", help="Nombre del Excel consolidado")
+    parser.add_argument("--output-file", help="Nombre del Excel. Por defecto: renati_resultados_{tema}.xlsx")
     parser.add_argument("--max-pages", type=int, default=30, help="Maximo de paginas RENATI a revisar")
     parser.add_argument("--headless", action="store_true", help="Ejecutar Chrome sin ventana visible")
     parser.add_argument("--skip-summary", action="store_true", help="No descargar resumen de detalle")
@@ -316,6 +322,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-detail-browser-fallback", action="store_true", help="Desactivar navegador para detalles sin resumen")
     parser.add_argument("--no-interactive", dest="interactive", action="store_false", help="No pedir datos por input")
     parser.add_argument("--log-level", default="WARNING", choices=("DEBUG", "INFO", "WARNING", "ERROR"))
+    parser.add_argument("--web", action="store_true", help="Abrir la interfaz web local")
+    parser.add_argument("--host", default="127.0.0.1", help="Host de la interfaz web local")
+    parser.add_argument("--port", type=int, default=8765, help="Puerto de la interfaz web local")
+    parser.add_argument("--no-open", action="store_true", help="No abrir el navegador automaticamente")
     parser.set_defaults(interactive=True)
     return parser.parse_args()
 

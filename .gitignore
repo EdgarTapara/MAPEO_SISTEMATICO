@@ -6,3 +6,5 @@ data/raw/*.html
 data/output/*.xlsx
 tests/_output/
 renati9.ipynb
+resultado_busqueda.csv
+view-source_*.html
